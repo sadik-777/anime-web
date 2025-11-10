@@ -1,7 +1,8 @@
-import axios from 'axios'
+import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Star, Calendar, PlayCircle} from 'lucide-react'
+import { ArrowLeft, Star, Calendar, PlayCircle, Heart } from 'lucide-react'
+import { isFavorited, addID, removeID } from './getfavorite.js'
 
 export default function AnimeDetail() {
     const { idA } = useParams()
@@ -11,6 +12,7 @@ export default function AnimeDetail() {
     const [recommendations, setRecommendations] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [isFav, setIsFav] = useState(false)
 
     useEffect(() => {
         const fetchAnimeDetail = async () => {
@@ -19,6 +21,7 @@ export default function AnimeDetail() {
             try {
                 const animeRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}`)
                 setAnime(animeRes.data.data)
+                setIsFav(isFavorited(idA))
 
                 const episodesRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}/episodes?limit=10`)
                 setEpisodes(episodesRes.data.data)
@@ -35,6 +38,18 @@ export default function AnimeDetail() {
         fetchAnimeDetail()
     }, [idA])
 
+    const handleToggleFavorite = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (isFav) {
+            removeID(idA)
+            setIsFav(false)
+        } else {
+            addID(idA)
+            setIsFav(true)
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen bg-gray-900">
@@ -44,7 +59,7 @@ export default function AnimeDetail() {
                     <span className="w-3 h-3 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.4s]"></span>
                 </div>
             </div>
-        )
+        );
     }
 
     if (error) {
@@ -59,10 +74,10 @@ export default function AnimeDetail() {
                 </button>
                 <p className="text-red-500">{error}</p>
             </div>
-        )
+        );
     }
 
-    if (!anime) return null
+    if (!anime) return null;
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -78,7 +93,16 @@ export default function AnimeDetail() {
                 className="relative h-96 bg-cover bg-center"
                 style={{ backgroundImage: `url(${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url})` }}
             >
-                <div className="absolute inset-0  from-gray-900 to-transparent"></div>
+                <div className="absolute inset-0 from-gray-900 to-transparent"></div>
+                <button
+                    onClick={handleToggleFavorite}
+                    className="absolute top-4 right-4 z-40 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                    aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                    <Heart
+                        className={`w-6 h-6 ${isFav ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                    />
+                </button>
                 <div className="absolute bottom-8 left-8 max-w-2xl">
                     <h1 className="text-5xl font-bold mb-2 text-white drop-shadow-lg">{anime.title}</h1>
                     <div className="flex items-center gap-4 mb-4">
@@ -207,5 +231,5 @@ export default function AnimeDetail() {
                 )}
             </div>
         </div>
-    )
+    );
 }

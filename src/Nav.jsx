@@ -28,6 +28,11 @@ export default function Nav() {
                                     Categories 
                                 </Link>
                         </li>
+                        <li>
+                                <Link to="/favorite" className="hover:text-orange-500 transition-colors duration-200 ">
+                                    favorite 
+                                </Link>
+                        </li>
                     </ul>
                     <Link to="/search">
                     <div className="flex items-center justify-center fill-white hover:text-orange-500 transition-colors duration-200">

@@ -4,6 +4,7 @@ import Footer from './Footer'
 import './App.css'
 import Home from './Home'
 import Categories from './About'
+import Favorite from './Favorite'
 import Service from './Service'
 import New from './New'
 import Search from './Search'
@@ -18,6 +19,7 @@ return (
       <Route path='/' element={<Home/>}/>
       <Route path='/new' element={<New/>}/>
       <Route path='/categories' element={<Categories/>}/>
+      <Route path='/favorite' element={<Favorite/>}/>
       <Route path='/categories/:idG' element={<PageId/>}/>
       <Route path='/:idA' element={<AnimeDetail/>}/>
       <Route path='/popular' element={<Service/>}/> 

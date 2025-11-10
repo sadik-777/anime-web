@@ -25,6 +25,7 @@
                 a => a.rating !== 'Rx - Hentai' && a.rating !== 'R+ - Mild Nudity'
             )
             setList(filtredHxAnime)
+            // setList(res.data.data)
             setLoading(false)
             })
             .catch(err => {

@@ -22,7 +22,7 @@ export default function Favorites() {
 
             const validIds = favoriteIds.filter(id => typeof id === 'number' && id > 0)
             if (validIds.length === 0) {
-                setFavorites([]);
+                setFavorites([])
                 return
             }
 
@@ -39,17 +39,17 @@ export default function Favorites() {
             const results = await Promise.allSettled(animePromises);
             const animeData = results
                 .filter(result => result.status === 'fulfilled' && result.value)
-                .map(result => result.value);
+                .map(result => result.value)
 
             // Apply filters (optional)
             const filteredAnime = animeData.filter(
                 a => a && a.rating !== 'Rx - Hentai' && a.rating !== 'R+ - Mild Nudity' && a.rating !== 'Boys Love'
-            );
+            )
 
-            console.log('Fetched and filtered favorites:', filteredAnime); // Debug log
+            console.log('Fetched and filtered favorites:', filteredAnime)
             setFavorites(filteredAnime);
         } catch (err) {
-            console.error('Error in fetchFavorites:', err);
+            console.error('Error in fetchFavorites:', err)
             setError('Failed to load favorites. Please check your connection or try again.');
         } finally {
             setLoading(false);
@@ -61,7 +61,7 @@ export default function Favorites() {
     }, []);
 
     const handleRetry = () => {
-        fetchFavorites(); // Allow manual retry
+        fetchFavorites()
     };
 
     if (loading) {

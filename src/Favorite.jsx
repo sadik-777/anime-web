@@ -2,31 +2,25 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import AnimeCard from './Card.jsx'
 import { getFavorites, isFavorited, addID, removeID } from './getfavorite.js'
-
 export default function Favorites() {
     const [favorites, setFavorites] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-
     const fetchFavorites = async () => {
-        setLoading(true);
-        setError(null);
+        setLoading(true)
+        setError(null)
         try {
             const favoriteIds = getFavorites();
             console.log('Favorite IDs from localStorage:', favoriteIds)
-
             if (!Array.isArray(favoriteIds) || favoriteIds.length === 0) {
-                setFavorites([]);
+                setFavorites([])
                 return;
             }
-
             const validIds = favoriteIds.filter(id => typeof id === 'number' && id > 0)
             if (validIds.length === 0) {
                 setFavorites([])
                 return
             }
-
-            // Use Promise.allSettled to handle partial failures
             const animePromises = validIds.map(id =>
                 axios.get(`https://api.jikan.moe/v4/anime/${id}`)
                     .then(res => res.data.data)
@@ -41,7 +35,6 @@ export default function Favorites() {
                 .filter(result => result.status === 'fulfilled' && result.value)
                 .map(result => result.value)
 
-            // Apply filters (optional)
             const filteredAnime = animeData.filter(
                 a => a && a.rating !== 'Rx - Hentai' && a.rating !== 'R+ - Mild Nudity' && a.rating !== 'Boys Love'
             )

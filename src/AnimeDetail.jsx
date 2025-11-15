@@ -1,53 +1,71 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Star, Calendar, PlayCircle, Heart } from 'lucide-react'
-import { isFavorited, addID, removeID } from './getfavorite.js'
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Star, Calendar, PlayCircle, Heart } from 'lucide-react';
+import { isFavorited, addID, removeID } from './getfavorite.js';
 
 export default function AnimeDetail() {
-    const { idA } = useParams()
-    const navigate = useNavigate()
-    const [anime, setAnime] = useState(null)
-    const [episodes, setEpisodes] = useState([])
-    const [recommendations, setRecommendations] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-    const [isFav, setIsFav] = useState(false)
+    const { idA } = useParams();
+    const navigate = useNavigate();
+    const [anime, setAnime] = useState(null);
+    const [episodes, setEpisodes] = useState([]);
+    const [recommendations, setRecommendations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isFav, setIsFav] = useState(false);
 
     useEffect(() => {
         const fetchAnimeDetail = async () => {
-            setLoading(true)
-            setError(null)
+            setLoading(true);
+            setError(null);
             try {
-                const animeRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}`)
-                setAnime(animeRes.data.data)
-                setIsFav(isFavorited(idA))
+                const animeRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}`);
+                const animeData = animeRes.data.data;
+                setAnime(animeData);
+                setIsFav(isFavorited(idA));
 
-                const episodesRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}/episodes?limit=10`)
-                setEpisodes(episodesRes.data.data)
 
-                const recRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}/recommendations`)
-                setRecommendations(recRes.data.data.slice(0, 6))
+                const episodesRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}/episodes?limit=10`);
+                setEpisodes(episodesRes.data.data);
+
+                const recRes = await axios.get(`https://api.jikan.moe/v4/anime/${idA}/recommendations`);
+                setRecommendations(recRes.data.data.slice(0, 6));
             } catch (err) {
-                console.error(err)
-                setError('Failed to fetch anime details.')
+                console.error(err);
+                setError('Failed to fetch anime details.');
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
-        fetchAnimeDetail()
-    }, [idA])
+        };
+        fetchAnimeDetail();
+    }, [idA]);
 
     const handleToggleFavorite = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault();
+        e.stopPropagation();
         if (isFav) {
-            removeID(idA)
-            setIsFav(false)
+            removeID(idA);
+            setIsFav(false);
         } else {
-            addID(idA)
-            setIsFav(true)
+            addID(idA);
+            setIsFav(true);
         }
+    };
+
+    const getTrailerEmbedUrl = () => {
+        if (!anime.trailer) return null;
+        
+        if (anime.trailer.embed_url) {
+            return anime.trailer.embed_url;
+        }
+        
+        if (anime.trailer.url) {
+            return anime.trailer.url
+                .replace('watch?v=', 'embed/')
+                .replace('youtu.be/', 'youtube.com/embed/');
+        }
+        
+        return null;
     };
 
     if (loading) {
@@ -79,6 +97,9 @@ export default function AnimeDetail() {
 
     if (!anime) return null;
 
+    const trailerEmbedUrl = getTrailerEmbedUrl();
+    const hasTrailer = trailerEmbedUrl || anime.trailer?.url;
+
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             <button
@@ -93,7 +114,7 @@ export default function AnimeDetail() {
                 className="relative h-96 bg-cover bg-center"
                 style={{ backgroundImage: `url(${anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url})` }}
             >
-                <div className="absolute inset-0 from-gray-900 to-transparent"></div>
+                <div className="absolute inset-0  from-gray-900 to-transparent"></div>
                 <button
                     onClick={handleToggleFavorite}
                     className="absolute top-4 right-4 z-40 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
@@ -112,7 +133,7 @@ export default function AnimeDetail() {
                         </div>
                         <div className="flex items-center gap-1">
                             <Calendar className="w-5 h-5 text-white" />
-                            <span className="text-white">{anime.aired.string}</span>
+                            <span className="text-white">{anime.aired?.string || 'N/A'}</span>
                         </div>
                         <span className="px-3 py-1 bg-orange-500 rounded-full text-sm text-white">{anime.rating || 'N/A'}</span>
                     </div>
@@ -157,6 +178,60 @@ export default function AnimeDetail() {
 
                 <section className="mb-12">
                     <h2 className="text-3xl font-bold mb-6 flex items-center gap-2 text-orange-500">
+                        <PlayCircle className="w-6 h-6" />
+                        Trailer
+                    </h2>
+                    {hasTrailer ? (
+                        <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                            {trailerEmbedUrl ? (
+                                <iframe
+                                    src={trailerEmbedUrl}
+                                    title="Anime Trailer"
+                                    className="w-full h-64 md:h-96"
+                                    allowFullScreen
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                ></iframe>
+                            ) : (
+                                <div className="w-full h-64 md:h-96 flex items-center justify-center bg-gray-700">
+                                    <p className="text-gray-400">Trailer available but cannot be embedded</p>
+                                </div>
+                            )}
+                            <div className="p-4">
+                                <h3 className="text-lg font-semibold mb-2 text-white">
+                                    Trailer: {anime.title}
+                                </h3>
+                                {anime.trailer?.images?.image_url && (
+                                    <img
+                                        src={anime.trailer.images.image_url}
+                                        alt="Trailer Thumbnail"
+                                        className="w-full h-auto rounded mb-2 max-w-md"
+                                    />
+                                )}
+                                {anime.trailer?.url && (
+                                    <a
+                                        href={anime.trailer.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-block mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                    >
+                                        Watch on YouTube
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                            <div className="p-8 text-center">
+                                <p className="text-gray-400 text-lg">No trailer available for this anime.</p>
+                                <p className="text-gray-500 text-sm mt-2">The API does not provide trailer data for this title.</p>
+                            </div>
+                        </div>
+                    )}
+                </section>
+
+                <section className="mb-12">
+                    <h2 className="text-3xl font-bold mb-6 flex items-center gap-2 text-orange-500">
                         Cast & Staff
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -187,23 +262,6 @@ export default function AnimeDetail() {
                     </div>
                 </section>
 
-                {anime.trailer?.url && (
-                    <section className="mb-12">
-                        <h2 className="text-3xl font-bold mb-6 flex items-center gap-2 text-orange-500">
-                            <PlayCircle className="w-6 h-6" />
-                            Trailer
-                        </h2>
-                        <div className="aspect-video max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-                            <iframe
-                                src={anime.trailer.url.replace('watch?v=', 'embed/')}
-                                title="Anime Trailer"
-                                className="w-full h-full"
-                                allowFullScreen
-                            ></iframe>
-                        </div>
-                    </section>
-                )}
-
                 {recommendations.length > 0 && (
                     <section className="mb-12">
                         <h2 className="text-3xl font-bold mb-6 flex items-center gap-2 text-orange-500">
@@ -217,7 +275,7 @@ export default function AnimeDetail() {
                                     onClick={() => navigate(`/anime/${rec.entry.mal_id}`)}
                                 >
                                     <img
-                                        src={rec.entry.images.jpg.image_url}
+                                        src={rec.entry.images?.jpg?.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}
                                         alt={rec.entry.title}
                                         className="w-full h-48 object-cover"
                                     />
